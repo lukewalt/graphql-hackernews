@@ -3,7 +3,7 @@ import graphene
 from graphene_django import DjangoObjectType
 
 from .models import Link
-
+from users.schema import UserType
 
 class LinkType(DjangoObjectType):
     class Meta:
@@ -22,6 +22,7 @@ class CreateLink(graphene.Mutation):
     id = graphene.Int()
     url = graphene.String()
     description = graphene.String()
+    posted_by = graphene.Field(UserType)
 
     #defines data that is sent to the server
     class Arguments:
@@ -30,13 +31,20 @@ class CreateLink(graphene.Mutation):
 
     # mutation method: creates link on the database using the defined data items
     def mutate(self, info, url, description):
-        link = Link(url=url, description=description)
+        user = info.context.user or None
+
+        link = Link(
+            url=url,
+            description=description,
+            posted_by=user,
+        )
         link.save()
 
         return CreateLink(
             id=link.id,
             url=link.url,
             description=link.description,
+            posted_by=link.posted_by,
         )
 
 
