@@ -9,6 +9,9 @@ class LinkType(DjangoObjectType):
     class Meta:
         model = Link
 
+class VoteType(DjangoObjectType):
+    class Meta:
+        model = Vote
 
 #defines a mutation class
 class CreateLink(graphene.Mutation):
@@ -52,7 +55,7 @@ class CreateVote(graphene.Mutation):
         user = info.context.user
         if user.is_anonymous:
            raise Exception("You must be logged in to vote")
-        
+
         link = Link.objects.filter(id=link_id).first()
         if not link:
            raise Exception("Invalid Link")
@@ -66,14 +69,16 @@ class CreateVote(graphene.Mutation):
 
 class Query(graphene.ObjectType):
     links = graphene.List(LinkType)
+    votes = graphene.List(VoteType)
 
     def resolve_links(self, info, **kwargs):
         return Link.objects.all()
 
+    def resolve_votes(self, info, **kwargs):
+        return Vote.objects.all()
 
 #creates mutation class with a field to be resolved which points to the mutation defined above
 
 class Mutation(graphene.ObjectType):
     create_link = CreateLink.Field()
     create_vote = CreateVote.Field()
-
